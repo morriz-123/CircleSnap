@@ -1,0 +1,6 @@
+version=1.2.0
+notes=New name and logo, Update log tab, update banner
+file=CircleSnap.ps1|808af42dd78227c271681847399b4bf2c4545cc4b82e2def897a3c72d8bdeed9
+file=Start CircleSnap.bat|e02d11c5101a7653f9d2ed5e619c1a3a201a8ba1dea3cb40c10b851419e85baa
+file=README.txt|39338bd7efd759c0d6e990e79da37f65b97d74b00148a3270809f1a3464eea93
+file=changelog.txt|0a6958745c8d902dac9495db0806c3752935f379a762d03d9cf12d01b57c2f4e
