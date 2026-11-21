@@ -10,4 +10,4 @@ Clicks the purple **x2** circle (or any circle you teach it) every time it pops 
 
 Updates install themselves: when a new version is out, the app shows an **Update available** banner.
 
-Current version: **v1.2.0**. See [changelog.txt](changelog.txt) for what's new.
+Current version: **v1.3.0**. See [changelog.txt](changelog.txt) for what's new.
