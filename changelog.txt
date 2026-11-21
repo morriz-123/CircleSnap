@@ -1,0 +1,14 @@
+v1.2.0
+- New name and logo: CircleSnap
+- Update log tab
+- Big banner when a new version is out
+
+v1.1.0
+- Learn target: hover any circle to teach it (works in other games)
+- Test shows a red box around what it found
+- Human movement option
+- Scans all monitors
+- New dark look and Logs
+
+v1.0.0
+- First version: finds and clicks the purple x2
