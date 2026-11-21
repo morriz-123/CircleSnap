@@ -1,3 +1,11 @@
+v1.4.0
+- New name: CircleTrack, with a new eye logo
+- Deep ocean look, cleaner layout, shiny buttons
+- MODULE button: pick which engine clicks for you
+- New Tracker module: confirms targets, follows moving circles, checks every click and never stops
+- Human movement: different speeds, misses on purpose and corrects
+- New Other tab
+
 v1.3.0
 - New look: sidebar, rounded buttons, custom title bar
 - Settings tab: Start / Turn off keybinds, target, delay, human movement, always on top
