@@ -1,2 +1,2 @@
 @echo off
-start "" powershell -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0CircleSnap.ps1"
+start "" powershell -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0CircleTrack.ps1"
