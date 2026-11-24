@@ -1,3 +1,6 @@
+v1.4.1
+- New setting: Main display only (scan just your main screen)
+
 v1.4.0
 - New name: CircleTrack, with a new eye logo
 - Deep ocean look, cleaner layout, shiny buttons
