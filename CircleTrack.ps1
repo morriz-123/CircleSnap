@@ -33,12 +33,12 @@ namespace TwoX {
 
 public static class Info {
     public const string Name = "CircleTrack";
-    public const string Version = "1.4.0";
+    public const string Version = "1.4.1";
     public const string DefaultUpdateUrl = "https://raw.githubusercontent.com/morriz-123/CircleSnap/main/";
     // Updates must be signed with the developer's private key (kept off GitHub).
     public const string PublicKey = "<RSAKeyValue><Modulus>qi5iTvS2ilQbLdEFsIC1LrKFO2th9Kwsw0D8JJ9DojxOjKB4iYHQhbFW5nAqxFupMTLlswRJiEaYG39r7WulHNJ6iSOmPFLtW1YFlf88V7pFXuO6zof2IDgmXhKLfImcL3edY6c+BgFm6C4XES9/2btlzpcXnI2JDfRcE4iZlb7tYnyzMTTRsX78svQmHQ6roARY+LTkhOkytdl7ouWgCaiwBMINLpVcFeMzhE5kMLGiPW64iV3VrlQuK4vtGRN0YZYq1iXHmGjdt9qi1NwRU6FvMnU311hfhKCxix0Y44aI3vLed92z/Ye+Rt7gtB2weNbYBOAX7LbG1/rohezvIQ==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
     public const string Changelog =
-        "v1.4.0\n" +
+        "v1.4.1\n" + "- New setting: Main display only (scan just your main screen)\n" + "\n" + "v1.4.0\n" +
         "- New name: CircleTrack, with a new eye logo\n" +
         "- Deep ocean look, cleaner layout, shiny buttons\n" +
         "- MODULE button: pick which engine clicks for you\n" +
@@ -78,7 +78,7 @@ public static class Native {
 
     public static bool KeyDown(int vk) { return (GetAsyncKeyState(vk) & 0x8000) != 0; }
     public static Point Cursor() { POINT p; GetCursorPos(out p); return new Point(p.X, p.Y); }
-    public static Rectangle VirtualScreen { get { return SystemInformation.VirtualScreen; } }
+    public static Rectangle VirtualScreen { get { return SystemInformation.VirtualScreen; } } public static bool MainOnly; public static Rectangle ScanArea { get { return MainOnly ? Screen.PrimaryScreen.Bounds : SystemInformation.VirtualScreen; } }
 
     public static Bitmap Grab(Rectangle r) {
         var bmp = new Bitmap(r.Width, r.Height, PixelFormat.Format32bppArgb);
@@ -646,7 +646,7 @@ public class Engine {
             return hits;
         }
     }
-    List<Hit> ScanAll(Target t) { return ScanRect(Native.VirtualScreen, t); }
+    List<Hit> ScanAll(Target t) { return ScanRect(Native.ScanArea, t); }
 
     void DoClick(Point c, int radius, double score) {
         Show("CLICKING", 2);
@@ -676,7 +676,7 @@ public class Engine {
             StepSimple(new Target()); return;
         }
         Rectangle vs = Native.VirtualScreen;
-        Hit h;
+        Hit h; vs = Native.ScanArea;
         using (var bmp = Native.Grab(vs)) { var ex = Exclude; ex.Offset(-vs.Left, -vs.Top); h = Detector.FindPicture(bmp, t.Picture, ex); }
         if (h == null) { nextScan = DateTime.Now.AddMilliseconds(300); return; }
         h.Box.Offset(vs.Left, vs.Top);
@@ -1364,7 +1364,7 @@ public class App : Form {
     ScrollView log, changelog;
     PictureBox targetPic;
     LogoView logoView;
-    Toggle humanTgl, topTgl;
+    Toggle humanTgl, topTgl, mainTgl;
     System.Windows.Forms.Timer uiTimer, keyTimer, learnTimer, updateTimer, animTimer;
     bool loaded, busy;
     int clicks, learnCountdown, startKey = 0x78, stopKey = 0x79, capturing;
@@ -1413,7 +1413,7 @@ public class App : Form {
         parent.Controls.Add(d);
     }
     OceanPanel Page() {
-        var p = new OceanPanel { Location = new Point(16, 14), Size = new Size(480, 492), Visible = false };
+        var p = new OceanPanel { Location = new Point(16, 14), Size = new Size(480, 516), Visible = false };
         content.Controls.Add(p);
         return p;
     }
@@ -1432,7 +1432,7 @@ public class App : Form {
         FormBorderStyle = FormBorderStyle.None;
         DoubleBuffered = true;
         BackColor = Color.FromArgb(5, 20, 50); ForeColor = Theme.Txt;
-        ClientSize = new Size(680, 560);
+        ClientSize = new Size(680, 584);
         StartPosition = FormStartPosition.CenterScreen;
         KeyPreview = true;
 
@@ -1451,7 +1451,7 @@ public class App : Form {
         bar.MouseDown += drag; title.MouseDown += drag; logoView.MouseDown += drag;
 
         // ---- sidebar ----
-        var side = new OceanPanel { Location = new Point(0, 48), Size = new Size(168, 512), Tint = Color.FromArgb(55, 0, 5, 20) };
+        var side = new OceanPanel { Location = new Point(0, 48), Size = new Size(168, 536), Tint = Color.FromArgb(55, 0, 5, 20) };
         Controls.Add(side);
         string[] names = { "Clicker", "Settings", "Update log", "Other" };
         navs = new NavItem[names.Length];
@@ -1466,7 +1466,7 @@ public class App : Form {
         repairBtn.Click += (s, e) => { if (pendingRepair != null) RunInstall(pendingRepair, true); };
 
         // ---- content ----
-        content = new OceanPanel { Location = new Point(168, 48), Size = new Size(512, 512) };
+        content = new OceanPanel { Location = new Point(168, 48), Size = new Size(512, 536) };
         Controls.Add(content);
         banner = CardAt(content, 16, 14, 480, 50); banner.Fill = Color.FromArgb(235, 251, 191, 36); banner.Border = Color.FromArgb(120, 255, 230, 150); banner.Visible = false;
         bannerLbl = L(banner, "Update available", 16, 14, 300, 22, Color.FromArgb(30, 25, 5), 10.5f, true);
@@ -1540,8 +1540,8 @@ public class App : Form {
         moduleBtn.Radius = 14; moduleBtn.Font = new Font("Segoe UI", 12f, FontStyle.Bold);
         moduleBtn.Click += (s, e) => ToggleModuleMenu();
 
-        var lc = CardAt(p, 0, 160, 480, 330);
-        log = new ScrollView { Location = new Point(12, 12), Size = new Size(456, 306), Mono = true };
+        var lc = CardAt(p, 0, 160, 480, 354);
+        log = new ScrollView { Location = new Point(12, 12), Size = new Size(456, 330), Mono = true };
         lc.Controls.Add(log);
 
         moduleMenu = new Card { Location = new Point(0, 154), Size = new Size(480, 16 + Modules.All.Length * 70), Fill = Color.FromArgb(245, 5, 18, 44), Visible = false };
@@ -1582,7 +1582,7 @@ public class App : Form {
         resetBtn.Click += (s, e) => { SetTarget(new Target()); try { File.Delete(targetPngPath); } catch { } SaveSettings(); AddLog("target reset to built-in x2"); };
 
         L(p, "CLICKING", 4, 260, 0, 0, Theme.Faint, 8.5f, true);
-        var cc = CardAt(p, 0, 280, 480, 132);
+        var cc = CardAt(p, 0, 280, 480, 172);
         var d1 = L(cc, "Delay after click", 18, 16, 0, 0, Theme.Txt, 10f, false);
         Dot(cc, 18 + d1.PreferredWidth + 6, 18, "How many seconds to wait after a click before looking for the next circle.");
         minusBtn = Btn(cc, "-", 1, 366, 10, 30, 28);
@@ -1599,9 +1599,9 @@ public class App : Form {
         Dot(cc, 18 + d3.PreferredWidth + 6, 100, "Keeps this window above the game so you can always see it. Don't let it cover the circle.");
         topTgl = new Toggle { Location = new Point(418, 95), Size = new Size(46, 24) };
         topTgl.Changed += (s, e) => { TopMost = topTgl.On; SaveSettings(); };
-        cc.Controls.Add(topTgl);
+        cc.Controls.Add(topTgl); var d4 = L(cc, "Main display only", 18, 139, 0, 0, Theme.Txt, 10f, false); Dot(cc, 18 + d4.PreferredWidth + 6, 141, "On: only looks at your main screen (a bit faster). Off: looks at all your screens."); mainTgl = new Toggle { Location = new Point(418, 136), Size = new Size(46, 24) }; mainTgl.Changed += (s, e) => { Native.MainOnly = mainTgl.On; SaveSettings(); }; cc.Controls.Add(mainTgl);
 
-        SoonCard(p, 426);
+        SoonCard(p, 466);
     }
 
     void SoonCard(OceanPanel p, int y) {
@@ -1612,8 +1612,8 @@ public class App : Form {
     }
 
     void BuildLog(OceanPanel p) {
-        var c = CardAt(p, 0, 0, 480, 490);
-        changelog = new ScrollView { Location = new Point(16, 14), Size = new Size(448, 462) };
+        var c = CardAt(p, 0, 0, 480, 514);
+        changelog = new ScrollView { Location = new Point(16, 14), Size = new Size(448, 486) };
         c.Controls.Add(changelog);
     }
 
@@ -1752,7 +1752,7 @@ public class App : Form {
     void DoTest() {
         try {
             Rectangle vs = Native.VirtualScreen;
-            List<Hit> hits;
+            List<Hit> hits; vs = Native.ScanArea;
             var sw = Stopwatch.StartNew();
             using (var shot = Native.Grab(vs)) { var ex = Bounds; ex.Offset(-vs.Left, -vs.Top); hits = Detector.Find(shot, ex, engine.Target); }
             if (hits.Count > 0) {
@@ -1893,7 +1893,7 @@ public class App : Form {
             string v;
             if (d.TryGetValue("cooldown", out v)) SetDelay(int.Parse(v));
             if (d.TryGetValue("human", out v)) humanTgl.On = v == "1";
-            if (d.TryGetValue("top", out v)) topTgl.On = v == "1";
+            if (d.TryGetValue("top", out v)) topTgl.On = v == "1"; if (d.TryGetValue("main", out v)) mainTgl.On = v == "1";
             if (d.TryGetValue("startKey", out v)) startKey = int.Parse(v);
             if (d.TryGetValue("stopKey", out v)) stopKey = int.Parse(v);
             if (d.TryGetValue("module", out v)) { int m = int.Parse(v); if (m >= 0 && m < Modules.All.Length) engine.Module = m; }
@@ -1915,7 +1915,7 @@ public class App : Form {
         try {
             var pos = WindowState == FormWindowState.Normal ? Location : RestoreBounds.Location;
             var o = new List<string> {
-                "cooldown=" + engine.Delay, "human=" + (humanTgl.On ? 1 : 0), "top=" + (topTgl.On ? 1 : 0),
+                "cooldown=" + engine.Delay, "human=" + (humanTgl.On ? 1 : 0), "top=" + (topTgl.On ? 1 : 0), "main=" + (mainTgl.On ? 1 : 0),
                 "startKey=" + startKey, "stopKey=" + stopKey, "module=" + engine.Module, "window=" + pos.X + "," + pos.Y };
             var t = engine.Target;
             if (!t.BuiltIn) { t.Save(o); t.Picture.Save(targetPngPath, ImageFormat.Png); }
